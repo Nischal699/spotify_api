@@ -1,0 +1,32 @@
+# Python-related
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.env.*
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# FastAPI static files
+/app/static/music_files/
+app/static/music_files/
+
+# Database (if using SQLite for local dev)
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE / Editor configs
+.vscode/
+.idea/
+
+# Migrations (if any auto-generated)
+migrations/
