@@ -1,0 +1,23 @@
+from pydantic import BaseModel
+from datetime import datetime
+from typing import Optional
+
+# Base Track schema (for shared fields)
+class TrackBase(BaseModel):
+    title: str
+    artist: str
+    album: Optional[str] = None
+    duration: Optional[int] = None  # seconds
+    file_url: str
+
+# Schema for creating a track (when admin uploads track)
+class TrackCreate(TrackBase):
+    pass
+
+# Schema for returning track data in API response
+class TrackOut(TrackBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
