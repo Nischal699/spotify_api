@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException , status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import user as user_model
@@ -12,7 +12,7 @@ router = APIRouter(
     tags=["Users"]  # Tags for documentation purposes
 )
 
-@router.post("/create_user", response_model=user_schema.UserOut)
+@router.post("/", response_model=user_schema.UserOut)
 def create_user(request: user_schema.UserCreate, db: Session = Depends(get_db)):
     # Optional: check if user already exists
     existing_user = db.query(user_model.User).filter(user_model.User.email == request.email).first()
@@ -32,3 +32,36 @@ def create_user(request: user_schema.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+@router.get('/{id}', response_model=user_schema.ShowUser, status_code=status.HTTP_200_OK)
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(user_model.User).filter(user_model.User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id {id} not found')
+    return user
+
+@router.post('/{id}', response_model=user_schema.ShowUser, status_code=status.HTTP_200_OK)
+def update_user(id: int, request: user_schema.UserUpdate, db: Session = Depends(get_db)):
+    user = db.query(user_model.User).filter(user_model.User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id {id} not found')
+    
+    # Update the user's details
+    if request.email:
+        user.email = request.email
+    if request.is_active is not None:
+        user.is_active = request.is_active
+    
+    db.commit()
+    db.refresh(user)
+    return user
+
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(user_model.User).filter(user_model.User.id == id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id {id} not found')
+    
+    db.delete(user)
+    db.commit()
+    return {"detail": "User deleted successfully"}

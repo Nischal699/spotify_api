@@ -44,3 +44,30 @@ def like_track(request: like_schema.LikeCreate, db: Session = Depends(get_db),cu
     db.refresh(new_like)
 
     return new_like
+
+@router.post("/unlike", response_model=like_schema.LikeOut)
+def unlike_track(request: like_schema.LikeCreate, db: Session = Depends(get_db), current_user: user_schema.UserBase = Depends(get_current_user)):   
+    # Check if user exists
+    user_exist = db.query(user_model.User).filter(user_model.User.id == request.user_id).first()
+    if not user_exist:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if track exists
+    track_exist = db.query(track_model.Track).filter(track_model.Track.id == request.track_id).first()
+    if not track_exist:
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    # Find the like entry to remove
+    like_entry = db.query(like_model.Like).filter(
+        like_model.Like.user_id == request.user_id,
+        like_model.Like.track_id == request.track_id
+    ).first()
+
+    if not like_entry:
+        raise HTTPException(status_code=404, detail="Like not found")
+
+    # Delete the like entry
+    db.delete(like_entry)
+    db.commit()
+
+    return like_entry

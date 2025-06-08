@@ -28,3 +28,36 @@ def create_track(request: track_schema.TrackBase, db: Session = Depends(get_db))
     db.commit()
     db.refresh(new_track)
     return new_track
+
+@router.get("/{id}", response_model=track_schema.TrackBase, status_code=200)
+def get_track(id: int, db: Session = Depends(get_db)):
+    track = db.query(track_model.Track).filter(track_model.Track.id == id).first()
+    if not track:
+        raise HTTPException(status_code=404, detail=f'Track with id {id} not found')
+    return track
+
+@router.put("/{id}", response_model=track_schema.TrackBase, status_code=200)
+def update_track(id: int, request: track_schema.TrackBase, db: Session = Depends(get_db)):
+    track = db.query(track_model.Track).filter(track_model.Track.id == id).first()
+    if not track:
+        raise HTTPException(status_code=404, detail=f'Track with id {id} not found')
+    
+    # Update the track's details
+    track.title = request.title
+    track.artist = request.artist
+    track.album = request.album
+    track.duration = request.duration
+    
+    db.commit()
+    db.refresh(track)
+    return track
+
+@router.delete("/{id}", status_code=204)
+def delete_track(id: int, db: Session = Depends(get_db)):
+    track = db.query(track_model.Track).filter(track_model.Track.id == id).first()
+    if not track:
+        raise HTTPException(status_code=404, detail=f'Track with id {id} not found')
+    
+    db.delete(track)
+    db.commit()
+    return {"detail": "Track deleted successfully"}
