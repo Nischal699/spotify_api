@@ -4,8 +4,7 @@ from typing import Optional
 
 # Base User schema (shared fields)
 class UserBase(BaseModel):
-    username: str
-    email: EmailStr
+    email: str
 
 # User registration schema (expects password)
 class UserCreate(UserBase):
@@ -22,5 +21,5 @@ class UserOut(UserBase):
 
 # User login schema (login request payload)
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str

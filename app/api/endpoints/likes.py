@@ -1,9 +1,11 @@
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from app.core.security import get_current_user
 from app.database import get_db
 from app.models import user as user_model, track as track_model, like as like_model
 from app.schemas import user as user_schema, track as track_schema, like as like_schema
+from fastapi.security import OAuth2PasswordBearer
 
 router = APIRouter(
     prefix="/likes",  # URL prefix for all routes in this router
@@ -12,7 +14,7 @@ router = APIRouter(
 
 
 @router.post("/create_like", response_model=like_schema.LikeOut)
-def like_track(request: like_schema.LikeCreate, db: Session = Depends(get_db)):
+def like_track(request: like_schema.LikeCreate, db: Session = Depends(get_db),current_user: user_schema.UserBase = Depends(get_current_user)):
     # Check if user exists
     user_exist = db.query(user_model.User).filter(user_model.User.id == request.user_id).first()
     if not user_exist:

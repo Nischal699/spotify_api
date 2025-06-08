@@ -7,7 +7,7 @@ from app.schemas import track as track_schema
 
 router = APIRouter(
     prefix="/tracks",  # URL prefix for all routes in this router
-    tags=["Authentication"]  # Tags for documentation purposes
+    tags=["Tracks"]  # Tags for documentation purposes
 )
 
 @router.post("/create_track", response_model=track_schema.TrackBase)

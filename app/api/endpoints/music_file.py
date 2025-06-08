@@ -1,6 +1,9 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 import os
 import shutil
+from fastapi import Depends
+from app.core.security import get_current_user
+from app.schemas import user as user_schema
 
 # Create a new router for music file-related endpoints
 router = APIRouter(
@@ -9,7 +12,7 @@ router = APIRouter(
 )
 
 @router.post("/upload-music/")
-async def upload_music(file: UploadFile = File(...)):
+async def upload_music(file: UploadFile = File(...),current_user: user_schema.UserBase = Depends(get_current_user)):
     # Validate file type (optional)
     if not file.filename.endswith((".mp3", ".wav", ".ogg")):
         raise HTTPException(status_code=400, detail="Invalid file type")

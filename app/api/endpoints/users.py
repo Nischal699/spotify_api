@@ -12,22 +12,21 @@ router = APIRouter(
     tags=["Users"]  # Tags for documentation purposes
 )
 
-@router.post("/create_user", response_model=user_schema.UserBase)
-def create_user(request: user_schema.UserBase, db: Session = Depends(get_db)):
+@router.post("/create_user", response_model=user_schema.UserOut)
+def create_user(request: user_schema.UserCreate, db: Session = Depends(get_db)):
     # Optional: check if user already exists
     existing_user = db.query(user_model.User).filter(user_model.User.email == request.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
     # Hash the password before storing it
-    request.password = pwd_context.hash(request.password)
+    hashed_password = pwd_context.hash(request.password)
 
     # Create a new user instance and add it to the database
 
     new_user = user_model.User(
-        username=request.username,
         email=request.email,
-        password=request.password  # You should hash this before storing!
+        password=hashed_password  # You should hash this before storing!
     )
     db.add(new_user)
     db.commit()

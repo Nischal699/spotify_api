@@ -15,7 +15,7 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
     user = db.query(user_model.User).filter(user_model.User.email == request.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    if not Hash.verify(user.password, request.password):
+    if not Hash.verify(request.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
     
     access_token = create_access_token(data={"sub": user.email})

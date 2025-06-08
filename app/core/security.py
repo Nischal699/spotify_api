@@ -10,7 +10,7 @@ from app.schemas.auth import TokenData  # assuming TokenData is in app/schemas
 
 pwd_cxt = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 # Password hashing utility
