@@ -7,12 +7,13 @@ from app.schemas import user as user_schema, track as track_schema , like as lik
 from app.database import get_db, Base, engine
 from passlib.context import CryptContext
 from app.api.endpoints import auth , tracks, likes , users , music_file
+from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(title=settings.APP_NAME)
 
 # Include routers for different endpoints
 
