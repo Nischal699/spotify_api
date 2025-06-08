@@ -60,3 +60,22 @@ def get_current_user(data: str = Depends(oauth2_scheme), db: Session = Depends(g
         headers={"WWW-Authenticate": "Bearer"},
     )
     return verify_token(data, credentials_exception)
+
+
+def get_current_admin_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email = payload.get("sub")
+        role = payload.get("role")
+        if email is None or role is None:
+            raise credentials_exception
+        if role != "admin":
+            raise HTTPException(status_code=403, detail="Admins only!")
+    except JWTError:
+        raise credentials_exception
+    return payload

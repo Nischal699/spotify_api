@@ -18,5 +18,7 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
     if not Hash.verify(request.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
     
-    access_token = create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
+    access_token = create_access_token(data={"sub": user.email, "role": user.role})
+    if not access_token:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create access token")
+    return {"access_token": access_token, "token_type": "bearer", "role": user.role, "email": user.email}

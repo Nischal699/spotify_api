@@ -11,3 +11,5 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(String, default=datetime.utcnow)  # Use appropriate datetime type if needed
 
+    role = Column(String, default='user')  # Default role is 'user'
+

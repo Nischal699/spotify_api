@@ -9,6 +9,8 @@ class UserBase(BaseModel):
 # User registration schema (expects password)
 class UserCreate(UserBase):
     password: str
+    role: Optional[str] = 'user'  # Default role is 'user'
+    is_active: Optional[bool] = True  # Default to active user
 
 # User response schema (sent to frontend)
 class UserOut(UserBase):

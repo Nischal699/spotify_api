@@ -27,7 +27,8 @@ def create_user(request: user_schema.UserCreate, db: Session = Depends(get_db)):
 
     new_user = user_model.User(
         email=request.email,
-        password=hashed_password  # You should hash this before storing!
+        password=hashed_password ,
+        role=request.role # You should hash this before storing!
     )
     db.add(new_user)
     db.commit()

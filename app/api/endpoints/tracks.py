@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import track as track_model
 from app.schemas import track as track_schema , user as user_schema
-from app.core.security import get_current_user
+from app.core.security import get_current_admin_user, get_current_user
 
 
 router = APIRouter(
@@ -11,7 +11,7 @@ router = APIRouter(
     tags=["Tracks"]  # Tags for documentation purposes
 )
 
-@router.post("/", response_model=track_schema.TrackBase)
+@router.post("/", response_model=track_schema.TrackBase,dependencies=[Depends(get_current_admin_user)])
 def create_track(request: track_schema.TrackBase, db: Session = Depends(get_db), current_user: user_schema.UserBase = Depends(get_current_user)):
     # Optional: check if track already exists
     existing_track = db.query(track_model.Track).filter(track_model.Track.title == request.title).first()
@@ -23,7 +23,7 @@ def create_track(request: track_schema.TrackBase, db: Session = Depends(get_db),
         title=request.title,
         artist=request.artist,
         album=request.album,
-        duration=request.duration
+        duration=request.duration,
     )
     db.add(new_track)
     db.commit()
