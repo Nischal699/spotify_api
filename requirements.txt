@@ -6,3 +6,6 @@ python-dotenv
 passlib[bcrypt]
 pyjwt
 aiofiles
+python-jose
+python-multipart
+pydantic-settings
