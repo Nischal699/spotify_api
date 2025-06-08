@@ -1,9 +1,10 @@
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from app.core.security import Hash , create_access_token
+from app.core.security import Hash , create_access_token, get_current_user
 from app import database  # assuming your get_db is here
 from app.models import user as user_model
+from app.schemas.auth import TokenData
 
 router = APIRouter(
     prefix="/auth",
@@ -22,3 +23,7 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
     if not access_token:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create access token")
     return {"access_token": access_token, "token_type": "bearer", "role": user.role, "email": user.email}
+
+@router.get("/validate_token")
+def validate_token(current_user: TokenData = Depends(get_current_user)):
+    return {"status": "valid", "email": current_user.email}
