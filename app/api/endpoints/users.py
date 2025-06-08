@@ -4,6 +4,7 @@ from app.database import get_db
 from app.models import user as user_model
 from app.schemas import user as user_schema
 from passlib.context import CryptContext
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Create a new router for user-related endpoints

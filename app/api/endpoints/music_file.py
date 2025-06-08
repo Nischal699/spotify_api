@@ -27,7 +27,7 @@ async def upload_music(file: UploadFile = File(...),current_user: user_schema.Us
     return {"filename": file.filename, "url": file_url}
 
 @router.get("/music-files/")
-async def list_music_files():
+async def list_music_files( current_user: user_schema.UserBase = Depends(get_current_user)):
     upload_folder = "app/static/music_files"
     if not os.path.exists(upload_folder):
         return {"files": []}
@@ -49,7 +49,7 @@ async def delete_music(filename: str, current_user: user_schema.UserBase = Depen
     return {"detail": f"File {filename} deleted successfully"}
 
 @router.get("/music-files/{filename}")
-async def get_music_file(filename: str):
+async def get_music_file(filename: str, current_user: user_schema.UserBase = Depends(get_current_user)):
     upload_folder = "app/static/music_files"
     file_location = os.path.join(upload_folder, filename)
 
