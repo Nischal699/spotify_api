@@ -11,3 +11,4 @@ class Track(Base):
     album = Column(String, nullable=True)
     duration = Column(Integer, nullable=True)  # seconds
     created_at = Column(DateTime, default=datetime.utcnow)
+    file_url = Column(String, nullable=True)  # <- for uploaded file URL

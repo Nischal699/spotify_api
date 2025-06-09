@@ -8,7 +8,8 @@ class TrackBase(BaseModel):
     title: str
     artist: str
     album: Optional[str] = None
-    duration: Optional[int] = None  # seconds  
+    duration: Optional[int] = None  # seconds 
+    file_url: Optional[str] = None  # URL to the track file 
 
 
 # Schema for creating a track (when admin uploads track)
