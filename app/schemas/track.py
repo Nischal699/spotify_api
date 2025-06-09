@@ -17,7 +17,7 @@ class TrackCreate(TrackBase):
     file_url: str  # URL to the track file
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # Schema for returning track data in API response
 class TrackOut(TrackBase):
@@ -25,4 +25,4 @@ class TrackOut(TrackBase):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True

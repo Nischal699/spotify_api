@@ -19,7 +19,7 @@ class UserOut(UserBase):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # User login schema (login request payload)
 class UserLogin(BaseModel):
@@ -33,7 +33,7 @@ class ShowUser(UserBase):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # User update schema (for updating user details)
 class UserUpdate(BaseModel):
@@ -41,4 +41,4 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
