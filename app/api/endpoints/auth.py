@@ -24,6 +24,10 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create access token")
     return {"access_token": access_token, "token_type": "bearer", "role": user.role, "email": user.email}
 
-@router.get("/validate_token")
+@router.get("/validate_token",status_code = status.HTTP_200_OK)
 def validate_token(current_user: TokenData = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    
+    # If the token is valid, return the user information
     return {"status": "valid", "email": current_user.email}
