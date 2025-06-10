@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException , status
 from sqlalchemy.orm import Session
+from app.core.security import get_current_admin_user, get_current_user
 from app.database import get_db
 from app.models import user as user_model
 from app.schemas import user as user_schema
@@ -13,7 +14,7 @@ router = APIRouter(
     tags=["Users"]  # Tags for documentation purposes
 )
 
-@router.post("/", response_model=user_schema.UserOut)
+@router.post("/", response_model=user_schema.UserOut, status_code=status.HTTP_201_CREATED)
 def create_user(request: user_schema.UserCreate, db: Session = Depends(get_db)):
     # Optional: check if user already exists
     existing_user = db.query(user_model.User).filter(user_model.User.email == request.email).first()
@@ -35,7 +36,7 @@ def create_user(request: user_schema.UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
-@router.get('/{id}', response_model=user_schema.ShowUser, status_code=status.HTTP_200_OK)
+@router.get('/{id}', response_model=user_schema.ShowUser, status_code=status.HTTP_200_OK,dependencies=[Depends(get_current_admin_user)])
 def get_user(id: int, db: Session = Depends(get_db)):
     user = db.query(user_model.User).filter(user_model.User.id == id).first()
     if not user:
@@ -43,7 +44,7 @@ def get_user(id: int, db: Session = Depends(get_db)):
     return user
 
 @router.post('/{id}', response_model=user_schema.ShowUser, status_code=status.HTTP_200_OK)
-def update_user(id: int, request: user_schema.UserUpdate, db: Session = Depends(get_db)):
+def update_user(id: int, request: user_schema.UserUpdate, db: Session = Depends(get_db), current_user: user_schema.UserBase = Depends(get_current_user)):
     user = db.query(user_model.User).filter(user_model.User.id == id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id {id} not found')
@@ -59,7 +60,7 @@ def update_user(id: int, request: user_schema.UserUpdate, db: Session = Depends(
     return user
 
 @router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(id: int, db: Session = Depends(get_db)):
+def delete_user(id: int, db: Session = Depends(get_db), current_user: user_schema.UserBase = Depends(get_current_user)):
     user = db.query(user_model.User).filter(user_model.User.id == id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with id {id} not found')
