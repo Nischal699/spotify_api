@@ -58,9 +58,11 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
             print(f"📤 Sent to {receiver_id}: {msg_payload}")
 
             await websocket.send_json(msg_payload)
+            
+            print(f"📤 Sent to sender {user_id}: {msg_payload}")
 
     except Exception as e:
         print(f"Disconnecting user {user_id}. Error: {e}")
         manager.disconnect(user_id)
         await manager.send_broadcast(f"📢 User {user_id} has disconnected.", sender_id=user_id)
- 
+        
