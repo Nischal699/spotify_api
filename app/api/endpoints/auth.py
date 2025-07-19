@@ -1,3 +1,4 @@
+from datetime import timedelta
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -19,7 +20,7 @@ def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(
     if not Hash.verify(request.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
     
-    access_token = create_access_token(data={"sub": user.email, "role": user.role})
+    access_token = create_access_token(data={"sub": str(user.id),"email": user.email, "role": user.role},expires_delta=timedelta(hours=1))
     if not access_token:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create access token")
     return {"access_token": access_token, "token_type": "bearer", "role": user.role, "email": user.email}
@@ -30,4 +31,4 @@ def validate_token(current_user: TokenData = Depends(get_current_user)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     
     # If the token is valid, return the user information
-    return {"status": "valid", "email": current_user.email}
+    return {"status": "valid", "email": current_user.email, "user_id": current_user.user_id}

@@ -43,10 +43,11 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 def verify_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email = payload.get("sub")
-        if email is None:
+        user_id = payload.get("sub")
+        email = payload.get("email")
+        if user_id is None or email is None:
             raise credentials_exception
-        token_data = TokenData(email=email)
+        token_data = TokenData(user_id=user_id,email=email)
         return token_data
     except JWTError:
         raise credentials_exception
