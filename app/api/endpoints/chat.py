@@ -199,7 +199,27 @@ def get_message_history(
         ((Message.sender_id == other_user_id) & (Message.receiver_id == user_id))
     ).order_by(Message.timestamp.desc()).offset(offset).limit(limit).all()
 
-    return list(reversed(messages))  # oldest first
+    enriched_messages = []
+    for msg in messages:
+        # ✅ Aggregate reactions per emoji
+        reactions = db.query(MessageReaction.emoji).filter_by(message_id=msg.id).all()
+        reaction_counts = {}
+        for emoji_row in reactions:
+            emoji = emoji_row[0]
+            reaction_counts[emoji] = reaction_counts.get(emoji, 0) + 1
+
+        enriched_messages.append({
+            "id": msg.id,
+            "sender_id": msg.sender_id,
+            "receiver_id": msg.receiver_id,
+            "content": msg.content,
+            "timestamp": msg.timestamp,
+            "is_delivered": msg.is_delivered,
+            "is_seen": msg.is_seen,
+            "reactions": reaction_counts  # ✅ Inject actual emoji reactions
+        })
+
+    return list(reversed(enriched_messages))
 
 
 def mark_messages_seen(db: Session, sender_id: int, receiver_id: int):

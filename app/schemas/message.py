@@ -1,4 +1,5 @@
 # schemas/message.py
+from typing import Optional, Dict
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -10,6 +11,7 @@ class MessageOut(BaseModel):
     timestamp: datetime
     is_delivered: bool
     is_seen: bool
+    reactions: Dict[str, int] = {}
 
     class Config:
         orm_mode = True
