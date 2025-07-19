@@ -1,5 +1,7 @@
+from typing import List
+from app.schemas.message import MessageOut
 from fastapi.concurrency import run_in_threadpool
-from fastapi import WebSocket, APIRouter, Depends
+from fastapi import WebSocket, APIRouter, Depends , Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.core.manager_instance import manager
@@ -66,3 +68,33 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
         manager.disconnect(user_id)
         await manager.send_broadcast(f"📢 User {user_id} has disconnected.", sender_id=user_id)
         
+
+@router.get("/history/", response_model=List[MessageOut])
+def get_message_history(
+    user_id: int,
+    other_user_id: int,
+    limit: int = Query(20),
+    offset: int = Query(0),
+    db: Session = Depends(get_db)
+):
+    # ✅ Mark other_user's messages as seen
+    mark_messages_seen(db, sender_id=other_user_id, receiver_id=user_id)
+    
+    messages = db.query(Message).filter(
+        ((Message.sender_id == user_id) & (Message.receiver_id == other_user_id)) |
+        ((Message.sender_id == other_user_id) & (Message.receiver_id == user_id))
+    ).order_by(Message.timestamp.desc()).offset(offset).limit(limit).all()
+
+    return list(reversed(messages))  # oldest first
+
+def mark_messages_seen(db: Session, sender_id: int, receiver_id: int):
+    unseen_messages = db.query(Message).filter(
+        Message.sender_id == sender_id,
+        Message.receiver_id == receiver_id,
+        Message.is_seen == False
+    ).all()
+
+    for message in unseen_messages:
+        message.is_seen = True
+
+    db.commit()
