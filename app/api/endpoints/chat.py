@@ -21,16 +21,18 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
     try:
         while True:
             data = await websocket.receive_json()
-            receiver_id = data.get("receiver_id")
-            message = data.get("message")
+            msg_type = data.get("type", "chat_message")
 
-            if receiver_id is None or message is None:
-                await websocket.send_text("Error: 'receiver_id' and 'message' must be provided.")
-                continue
+            if msg_type == "chat_message":
+                receiver_id = data.get("receiver_id")
+                message = data.get("message")
 
-            # Save message to DB in threadpool
-            def save_message():
-                try:
+                if receiver_id is None or message is None:
+                    await websocket.send_text("Error: 'receiver_id' and 'message' must be provided.")
+                    continue
+
+                # Save message in DB
+                def save_message():
                     new_message = Message(
                         sender_id=user_id,
                         receiver_id=receiver_id,
@@ -42,26 +44,40 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
                     db.commit()
                     db.refresh(new_message)
                     print(f"Message saved with id: {new_message.id}")
-                except Exception as e:
-                    db.rollback()
-                    print(f"DB Save error: {e}")
-                    raise e
 
-            await run_in_threadpool(save_message)
+                await run_in_threadpool(save_message)
 
-            msg_payload = {
-            "sender_id": user_id,
-            "receiver_id": receiver_id,
-            "message": message
-            }
+                msg_payload = {
+                    "type": "chat_message",
+                    "sender_id": user_id,
+                    "receiver_id": receiver_id,
+                    "message": message
+                }
 
-            await manager.send_personal_message(msg_payload, receiver_id)
+                await manager.send_personal_message(msg_payload, receiver_id)
+                await websocket.send_json(msg_payload)
 
-            print(f"📤 Sent to {receiver_id}: {msg_payload}")
+            elif msg_type == "mark_seen":
+                sender_id = int(data.get("sender_id"))
 
-            await websocket.send_json(msg_payload)
-            
-            print(f"📤 Sent to sender {user_id}: {msg_payload}")
+                def mark_seen():
+                    unseen_messages = db.query(Message).filter(
+                        Message.sender_id == sender_id,
+                        Message.receiver_id == user_id,
+                        Message.is_seen == False
+                    ).all()
+
+                    for message in unseen_messages:
+                        message.is_seen = True
+                    db.commit()
+
+                await run_in_threadpool(mark_seen)
+
+                # Notify the original sender that their messages were seen
+                await manager.send_personal_message({
+                    "type": "seen_ack",
+                    "receiver_id": user_id
+                }, sender_id)
 
     except Exception as e:
         print(f"Disconnecting user {user_id}. Error: {e}")
