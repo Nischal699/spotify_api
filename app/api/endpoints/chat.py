@@ -23,7 +23,17 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db: Session = D
             data = await websocket.receive_json()
             msg_type = data.get("type", "chat_message")
 
-            if msg_type == "chat_message":
+            # ✅ 1. Typing indicator
+            if msg_type == "typing":
+                receiver_id = data.get("receiver_id")
+                if receiver_id is not None:
+                    await manager.send_personal_message({
+                    "type": "typing",
+                    "sender_id": user_id,
+                }, receiver_id)
+                continue
+            # ✅ 2. Chat message
+            elif msg_type == "chat_message":
                 receiver_id = data.get("receiver_id")
                 message = data.get("message")
 
