@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException , status
 from sqlalchemy.orm import Session
 from app.core.security import get_current_admin_user, get_current_user
@@ -35,6 +36,11 @@ def create_user(request: user_schema.UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     return new_user
+
+@router.get("/", response_model=List[user_schema.ShowUser])
+def get_all_users(db: Session = Depends(get_db), current_user: user_schema.UserBase = Depends(get_current_user)):
+    users = db.query(user_model.User).all()
+    return users
 
 @router.get('/{id}', response_model=user_schema.ShowUser, status_code=status.HTTP_200_OK,dependencies=[Depends(get_current_admin_user)])
 def get_user(id: int, db: Session = Depends(get_db)):
