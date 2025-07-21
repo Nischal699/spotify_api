@@ -57,8 +57,10 @@ def create_track(
     db.refresh(new_track)
     return new_track
 
-@router.get("/", response_model=List[track_schema.TrackBase], status_code=200)
-def get_all_tracks(db: Session = Depends(get_db)):
+@router.get("/all", response_model=List[track_schema.TrackBase])
+def get_all_tracks(
+    db: Session = Depends(get_db)
+):
     tracks = db.query(track_model.Track).all()
     return tracks
 
