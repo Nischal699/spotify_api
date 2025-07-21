@@ -1,3 +1,4 @@
+from typing import List
 import os
 import shutil
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -56,8 +57,14 @@ def create_track(
     db.refresh(new_track)
     return new_track
 
+@router.get("/", response_model=List[track_schema.TrackBase], status_code=200)
+def get_all_tracks(db: Session = Depends(get_db)):
+    tracks = db.query(track_model.Track).all()
+    return tracks
+
+
 @router.get("/{id}", response_model=track_schema.TrackBase, status_code=200)
-def get_track(id: int, db: Session = Depends(get_db), current_user: user_schema.UserBase = Depends(get_current_user)):
+def get_track(id: int, db: Session = Depends(get_db)):
     track = db.query(track_model.Track).filter(track_model.Track.id == id).first()
     if not track:
         raise HTTPException(status_code=404, detail=f'Track with id {id} not found')
